@@ -1,10 +1,12 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
  * crunchy2 May 2007-July 2007
  * Michniewski 2008
- * Tantric 2008-2019
+ * Tantric 2008-2023
+ * InfiniteBlueGX May-December 2022
+ * NiuuS 2017-2023
  *
  * snes9xrx.cpp
  *
@@ -59,6 +61,7 @@ int ResetRequested = 0;
 int ExitRequested = 0;
 bool isWiiVC = false;
 char appPath[1024] = { 0 };
+static int currentMode;
 bool firstRun = true;
 
 extern "C" {
@@ -168,7 +171,7 @@ void ShutdownCB()
 {
 	ShutdownRequested = 1;
 }
-void ResetCB()
+void ResetCB(u32 irq, void *ctx)
 {
 	ResetRequested = 1;
 }
@@ -300,7 +303,7 @@ bool SaneIOS(u32 ios)
 static bool gecko = false;
 static mutex_t gecko_mutex = 0;
 
-static ssize_t __out_write(struct _reent *r, int fd, const char *ptr, size_t len)
+static ssize_t __out_write(struct _reent *r, void* fd, const char *ptr, size_t len)
 {
 	if (!gecko || len == 0)
 		return len;
@@ -443,11 +446,11 @@ int main(int argc, char *argv[])
 	savebuffer = (unsigned char *)mem2_malloc(SAVEBUFFERSIZE);
 	browserList = (BROWSERENTRY *)mem2_malloc(sizeof(BROWSERENTRY)*MAX_BROWSER_SIZE);
 #else
+	savebuffer = (unsigned char *)memalign(32,SAVEBUFFERSIZE);
 #ifdef USE_VM
 	savebuffer = (unsigned char *)vm_malloc(SAVEBUFFERSIZE);
 	browserList = (BROWSERENTRY *)vm_malloc(sizeof(BROWSERENTRY)*MAX_BROWSER_SIZE);
 #else
-	savebuffer = (unsigned char *)memalign(32,SAVEBUFFERSIZE);
 	browserList = (BROWSERENTRY *)memalign(32,sizeof(BROWSERENTRY)*MAX_BROWSER_SIZE);
 #endif
 #endif
@@ -481,7 +484,10 @@ int main(int argc, char *argv[])
 
 			SwitchAudioMode(1);
 
-			SNESROMSize == 0 ? MainMenu(MENU_GAMESELECTION) : MainMenu(MENU_GAME);
+			if(SNESROMSize == 0)
+				MainMenu(MENU_GAMESELECTION);
+			else
+				MainMenu(MENU_GAME);
 		}
 
 #ifdef HW_RVL
@@ -545,6 +551,7 @@ int main(int argc, char *argv[])
 		Settings.ReverseStereo = (GCSettings.ReverseStereo == 1);
 		Settings.Mute = (GCSettings.MuteAudio == 1);
 		Settings.SupportHiRes = (GCSettings.HiResolution == 1);
+		Settings.SkipFrames = (GCSettings.FrameSkip ? AUTO_FRAMERATE : 0);
 		Settings.DisplayFrameRate = (GCSettings.ShowFrameRate == 1);
 		Settings.DisplayTime = (GCSettings.ShowLocalTime == 1);
 		Settings.AutoDisplayMessages = (Settings.DisplayFrameRate || Settings.DisplayTime ? true : false);
@@ -566,13 +573,14 @@ int main(int argc, char *argv[])
 
 		CheckVideo = 2;		// force video update
 		prevRenderedFrameCount = IPPU.RenderedFramesCount;
+		currentMode = GCSettings.render;
 
 		while(1) // emulation loop
 		{
 			S9xMainLoop();
 			ReportButtons();
 
-			if (ResetRequested)
+			if(ResetRequested)
 			{
 				S9xSoftReset(); // reset game
 				ResetRequested = 0;

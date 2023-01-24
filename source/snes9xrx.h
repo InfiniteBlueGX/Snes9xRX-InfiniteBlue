@@ -1,10 +1,12 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
  * crunchy2 May 2007-July 2007
  * Michniewski 2008
- * Tantric 2008-2019
+ * Tantric 2008-2023
+ * InfiniteBlueGX May-December 2022
+ * NiuuS 2017-2023
  *
  * snes9xrx.h
  *
@@ -14,6 +16,7 @@
 #ifndef _SNES9XRX_H_
 #define _SNES9XRX_H_
 
+#define MAXPATHLEN 1024
 #include "utils/FreeTypeGX.h"
 #include "snes9x.h"
 #include "filter.h"
@@ -133,7 +136,7 @@ struct SGCSettings{
 
 	float	zoomHor; // Horizontal zoom amount
 	float	zoomVert; // Vertical zoom amount
-	int		videomode; // 0 - Automatic, 1 - NTSC (480i), 2 - Progressive (480p), 3 - PAL (50Hz), 4 - PAL (60Hz)
+	int		videomode; // 0 - Automatic, 1 - NTSC (480i), 2 - Progressive (480p), 3 - Progressive (576p), 4 - PAL (50Hz), 5 - PAL (60Hz)
 	int		render;		// 0 - Original, 1 - Filtered, 2 - Unfiltered
 	int		widescreen;	// 0 - 4:3 aspect, 1 - 16:9 aspect
 	int		FilterMethod; // Convert to rendering filter
@@ -141,6 +144,7 @@ struct SGCSettings{
 	int		xshift; // Video output shift
 	int		yshift;
 	int		HiResolution;
+	int		FrameSkip;
 	int		crosshair;
 	int		ShowFrameRate;
 	int		ShowLocalTime;

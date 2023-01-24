@@ -5,7 +5,8 @@
  * svpe June 2007
  * crunchy2 May-July 2007
  * Michniewski 2008
- * Tantric 2008-2010
+ * Tantric 2008-2023
+ * NiuuS 2016-2023
  *
  * filebrowser.cpp
  *
@@ -341,7 +342,7 @@ int FileSortCallback(const void *f1, const void *f2)
 	if(((BROWSERENTRY *)f1)->isdir && !(((BROWSERENTRY *)f2)->isdir)) return -1;
 	if(!(((BROWSERENTRY *)f1)->isdir) && ((BROWSERENTRY *)f2)->isdir) return 1;
 
-	return stricmp(((BROWSERENTRY *)f1)->filename, ((BROWSERENTRY *)f2)->filename);
+	return strcasecmp(((BROWSERENTRY *)f1)->filename, ((BROWSERENTRY *)f2)->filename);
 }
 
 /****************************************************************************
@@ -362,7 +363,7 @@ static bool IsValidROM()
 		{
 			char * zippedFilename = NULL;
 			
-			if(stricmp(p, ".zip") == 0 && !inSz)
+			if(strcasecmp(p, ".zip") == 0 && !inSz)
 			{
 				// we need to check the file extension of the first file in the archive
 				zippedFilename = GetFirstZipFilename ();
@@ -375,11 +376,11 @@ static bool IsValidROM()
 
 			if(p != NULL)
 			{
-				if (stricmp(p, ".bs") == 0 ||
-					stricmp(p, ".fig") == 0 ||
-					stricmp(p, ".sfc") == 0 ||
-					stricmp(p, ".smc") == 0 ||
-					stricmp(p, ".swc") == 0)
+				if (strcasecmp(p, ".bs") == 0 ||
+					strcasecmp(p, ".fig") == 0 ||
+					strcasecmp(p, ".sfc") == 0 ||
+					strcasecmp(p, ".smc") == 0 ||
+					strcasecmp(p, ".swc") == 0)
 				{
 					if(zippedFilename) free(zippedFilename);
 					return true;
@@ -404,7 +405,7 @@ bool IsSz()
 		char * p = strrchr(browserList[browser.selIndex].filename, '.');
 
 		if (p != NULL)
-			if(stricmp(p, ".7z") == 0)
+			if(strcasecmp(p, ".7z") == 0)
 				return true;
 	}
 	return false;
@@ -495,7 +496,8 @@ int WiiFileLoader()
 		else
 			sprintf (filepath, "%s%s/", pathPrefix[GCSettings.LoadMethod], APPFOLDER);
 
-		if(LoadFile ((char *)Memory.BIOSROM, filepath, 0, 0x100000, SILENT) == 0) {
+		if(LoadFile ((char *)Memory.BIOSROM, filepath, 0, 0x100000, SILENT) == 0)
+		{
 			bsxBiosLoadFailed = true;
 		}
 	}

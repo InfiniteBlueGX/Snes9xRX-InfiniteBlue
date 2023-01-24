@@ -1,7 +1,9 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
- * Tantric 2008-2019
+ * Tantric 2008-2023
+ * InfiniteBlueGX May-December 2022
+ * NiuuS 2017-2023
  *
  * menu.cpp
  *
@@ -618,7 +620,7 @@ void InfoPrompt(const char *msg)
 /****************************************************************************
  * AutoSave
  *
- * Automatically saves SRAM/snapshot when returning from in-game to the menu
+ * Automatically saves SRAM/Snapshot when returning from in-game to the menu
  ***************************************************************************/
 void AutoSave()
 {
@@ -843,25 +845,25 @@ static void WindowCredits(void * ptr)
 	txt[i]->SetAlignment(ALIGN_CENTRE, ALIGN_TOP); txt[i]->SetPosition(0,y); i++; y+=40;
 
 	GuiText::SetPresets(18, (GXColor){0, 0, 0, 255}, 0, FTGX_JUSTIFY_LEFT | FTGX_ALIGN_TOP, ALIGN_LEFT, ALIGN_TOP);
-	txt[i] = new GuiText("Coding & menu design");
+	txt[i] = new GuiText("Coding & artwork");
 	txt[i]->SetPosition(50,y); i++;
-	txt[i] = new GuiText("Tantric");
+	txt[i] = new GuiText("NiuuS");
 	txt[i]->SetPosition(330,y); i++; y+=24;
 	txt[i] = new GuiText("Additional improvements");
 	txt[i]->SetPosition(50,y); i++;
-	txt[i] = new GuiText("NiuuS, bladeoner,");
+	txt[i] = new GuiText("bladeoner, Zopenko");
 	txt[i]->SetPosition(330,y); i++; y+=24;
-	txt[i] = new GuiText("Zopenko, InfiniteBlue");
-	txt[i]->SetPosition(330,y); i++; y+=24;
-	txt[i] = new GuiText("Menu artwork");
-	txt[i]->SetPosition(50,y); i++;
-	txt[i] = new GuiText("NiuuS, the3seashells");
+	txt[i] = new GuiText("askotx, InfiniteBlueGX, others");
 	txt[i]->SetPosition(330,y); i++; y+=24;
 	txt[i] = new GuiText("Logotype");
 	txt[i]->SetPosition(50,y); i++;
 	txt[i] = new GuiText("NiuuS");
 	txt[i]->SetPosition(330,y); i++; y+=48;
 
+	txt[i] = new GuiText("Snes9x GX Wii");
+	txt[i]->SetPosition(50,y); i++;
+	txt[i] = new GuiText("Tantric (art by the3seashells)");
+	txt[i]->SetPosition(330,y); i++; y+=24;
 	txt[i] = new GuiText("Snes9x GX GameCube");
 	txt[i]->SetPosition(50,y); i++;
 	txt[i] = new GuiText("SoftDev, crunchy2,");
@@ -909,7 +911,7 @@ static void WindowCredits(void * ptr)
 
 	GuiText::SetPresets(12, (GXColor){0, 0, 0, 255}, 0, FTGX_JUSTIFY_CENTER | FTGX_ALIGN_TOP, ALIGN_CENTRE, ALIGN_BOTTOM);
 
-	txt[i] = new GuiText("Snes9x - Copyright (c) Snes9x Team 1996 - 2022");
+	txt[i] = new GuiText("Snes9x - Copyright (c) Snes9x Team 1996 - 2023");
 	txt[i]->SetPosition(0,-44); i++;
 	txt[i] = new GuiText("This software is open source and may be copied, distributed, or modified");
 	txt[i]->SetPosition(0,-32); i++;
@@ -1050,7 +1052,7 @@ static int MenuGameSelection()
 	ResetBrowser();
 
 	GuiTrigger trigPlusMinus;
-	trigPlusMinus.SetButtonOnlyTrigger(-1, WPAD_BUTTON_PLUS | WPAD_CLASSIC_BUTTON_PLUS, PAD_TRIGGER_Z, WIIDRC_BUTTON_PLUS);
+	trigPlusMinus.SetButtonOnlyTrigger(-1, WPAD_BUTTON_MINUS | WPAD_CLASSIC_BUTTON_MINUS, PAD_TRIGGER_Z, WIIDRC_BUTTON_MINUS);
 
 	GuiImage bgPreview(&bgPreviewImg);
 	GuiButton bgPreviewBtn(bgPreview.GetWidth(), bgPreview.GetHeight());
@@ -1612,8 +1614,8 @@ static int MenuGame()
 	w.Append(&resetBtn);
 	w.Append(&screenshotBtn);
 	w.Append(&gameSettingsBtn);
-	
-	if(GCSettings.DisplayVM == 1) //show memory usage
+
+	if(GCSettings.DisplayVM == 1) // show memory usage
 	{
 		w.Append(&memTxt);
 	}
@@ -1892,8 +1894,10 @@ static int MenuGameSaves(int action)
 	GuiImageData btnCloseOutline(button_small_png);
 	GuiImageData btnCloseOutlineOver(button_small_over_png);
 
+	GuiTrigger trigHome;
 	GuiTrigger trigB;
 	GuiTrigger trig1;
+	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_START, WIIDRC_BUTTON_HOME);
 	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
 	trig1.SetButtonOnlyTrigger(-1, WPAD_BUTTON_1, 0, 0);
 
@@ -1913,9 +1917,6 @@ static int MenuGameSaves(int action)
 	backBtn.SetTrigger(&trigB);
 	backBtn.SetTrigger(&trig1);
 	backBtn.SetEffectGrow();
-
-	GuiTrigger trigHome;
-	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_START, WIIDRC_BUTTON_HOME);
 
 	GuiText closeBtnTxt("Close", 20, (GXColor){0, 0, 0, 255});
 	GuiImage closeBtnImg(&btnCloseOutline);
@@ -2171,7 +2172,11 @@ static int MenuGameSettings()
 	GuiImageData btnCloseOutlineOver(button_small_over_png);
 
 	GuiTrigger trigHome;
+	GuiTrigger trigB;
+	GuiTrigger trig1;
 	trigHome.SetButtonOnlyTrigger(-1, WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME, PAD_BUTTON_START, WIIDRC_BUTTON_HOME);
+	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
+	trig1.SetButtonOnlyTrigger(-1, WPAD_BUTTON_1, 0, 0);
 
 	GuiText mappingBtnTxt("Button Mappings", 22, (GXColor){0, 0, 0, 255});
 	mappingBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
@@ -2294,11 +2299,6 @@ static int MenuGameSettings()
 	closeBtn.SetTrigger(trig2);
 	closeBtn.SetTrigger(&trigHome);
 	closeBtn.SetEffectGrow();
-
-	GuiTrigger trigB;
-	GuiTrigger trig1;
-	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
-	trig1.SetButtonOnlyTrigger(-1, WPAD_BUTTON_1, 0, 0);
 
 	GuiText backBtnTxt("Go Back", 22, (GXColor){0, 0, 0, 255});
 	GuiImage backBtnImg(&btnOutline);
@@ -2593,7 +2593,7 @@ static int MenuSettingsMappings()
 	otherBtn.SetTrigger(trigA);
 	otherBtn.SetTrigger(trig2);
 	otherBtn.SetEffectGrow();
-	
+
 	GuiTrigger trigB;
 	GuiTrigger trig1;
 	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
@@ -2697,7 +2697,7 @@ static int MenuSettingsMappingsController()
 	GuiImageData iconNunchuk(icon_settings_nunchuk_png);
 	GuiImageData iconWiiupro(icon_settings_wiiupro_png);
 	GuiImageData iconDrc(icon_settings_drc_png);
-	
+
 	GuiText gamecubeBtnTxt("GameCube Controller", 22, (GXColor){0, 0, 0, 255});
 	gamecubeBtnTxt.SetWrap(true, btnLargeOutline.GetWidth()-30);
 	GuiImage gamecubeBtnImg(&btnLargeOutline);
@@ -2809,7 +2809,7 @@ static int MenuSettingsMappingsController()
 	wiiuproBtn.SetTrigger(trigA);
 	wiiuproBtn.SetTrigger(trig2);
 	wiiuproBtn.SetEffectGrow();
-	
+
 	GuiTrigger trigB;
 	GuiTrigger trig1;
 	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
@@ -3565,7 +3565,7 @@ static int MenuSettingsOtherMappings()
 	GuiSound btnSoundClick(button_click_pcm, button_click_pcm_size, SOUND_PCM);
 	GuiImageData btnOutline(button_png);
 	GuiImageData btnOutlineOver(button_over_png);
-	
+
 	GuiTrigger trigB;
 	GuiTrigger trig1;
 	trigB.SetButtonOnlyTrigger(-1, WPAD_BUTTON_B | WPAD_CLASSIC_BUTTON_B, PAD_BUTTON_B, WIIDRC_BUTTON_B);
@@ -3709,6 +3709,7 @@ static int MenuSettingsVideo()
 	sprintf(options.name[i++], "Screen Position");
 	sprintf(options.name[i++], "Video Mode");
 	sprintf(options.name[i++], "SNES Hi-Res Mode");
+	sprintf(options.name[i++], "Frame Skipping");
 	sprintf(options.name[i++], "Crosshair");
 	sprintf(options.name[i++], "Show Framerate");
 	sprintf(options.name[i++], "Show Local Time");
@@ -3799,7 +3800,7 @@ static int MenuSettingsVideo()
 
 			case 5:
 				GCSettings.videomode++;
-				if(GCSettings.videomode > 4)
+				if(GCSettings.videomode > 5)
 					GCSettings.videomode = 0;
 				break;
 
@@ -3808,14 +3809,18 @@ static int MenuSettingsVideo()
 				break;
 
 			case 7:
-				GCSettings.crosshair ^= 1;
+				GCSettings.FrameSkip ^= 1;
 				break;
 
 			case 8:
-				GCSettings.ShowFrameRate ^= 1;
+				GCSettings.crosshair ^= 1;
 				break;
 
 			case 9:
+				GCSettings.ShowFrameRate ^= 1;
+				break;
+
+			case 10:
 				GCSettings.ShowLocalTime ^= 1;
 				break;
 		}
@@ -3854,14 +3859,17 @@ static int MenuSettingsVideo()
 				case 2:
 					sprintf (options.value[5], "Progressive (480p)"); break;
 				case 3:
-					sprintf (options.value[5], "PAL (50Hz)"); break;
+					sprintf (options.value[5], "Progressive (576p)"); break;
 				case 4:
+					sprintf (options.value[5], "PAL (50Hz)"); break;
+				case 5:
 					sprintf (options.value[5], "PAL (60Hz)"); break;
 			}
 			sprintf (options.value[6], "%s", GCSettings.HiResolution == 1 ? "On" : "Off");
-			sprintf (options.value[7], "%s", GCSettings.crosshair == 1 ? "On" : "Off");
-			sprintf (options.value[8], "%s", GCSettings.ShowFrameRate ? "On" : "Off");
-			sprintf (options.value[9], "%s", GCSettings.ShowLocalTime ? "On" : "Off");
+			sprintf (options.value[7], "%s", GCSettings.FrameSkip == 1 ? "On" : "Off");
+			sprintf (options.value[8], "%s", GCSettings.crosshair == 1 ? "On" : "Off");
+			sprintf (options.value[9], "%s", GCSettings.ShowFrameRate ? "On" : "Off");
+			sprintf (options.value[10], "%s", GCSettings.ShowLocalTime ? "On" : "Off");
 
 			optionBrowser.TriggerUpdate();
 		}
@@ -4719,11 +4727,10 @@ static int MenuSettingsMenu()
 			case 5:
 				GCSettings.language++;
 				
-				if(GCSettings.language >= LANG_LENGTH)
-					GCSettings.language = LANG_JAPANESE;
-
-				if(GCSettings.language == LANG_SIMP_CHINESE)
+				if(GCSettings.language == LANG_TRAD_CHINESE) // skip (not supported)
 					GCSettings.language = LANG_KOREAN;
+				else if(GCSettings.language >= LANG_LENGTH)
+					GCSettings.language = LANG_JAPANESE;
 				break;
 			case 6:
 				GCSettings.PreviewImage++;
