@@ -2,7 +2,7 @@
  * Snes9x 1.52 Nintendo Wii/GameCube Port
  *
  * Michniewski 2008
- * NiuuS 2017-2023
+ * NiuuS 2016-2023
  *
  * filter.h
  *
@@ -24,12 +24,14 @@
 enum RenderFilter{
 	FILTER_NONE = 0,
 
-	FILTER_SCALE2X,
+	FILTER_EPXA,
+	FILTER_EPXB,
 	FILTER_HQ2X,
 	FILTER_HQ2XS,
 	FILTER_HQ2XBOLD,
 	FILTER_SCANLINESA,
 	FILTER_SCANLINESB,
+	FILTER_DOTMATRIX,
 
 	NUM_FILTERS
 };

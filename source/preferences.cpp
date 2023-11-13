@@ -3,7 +3,7 @@
  *
  * Tantric 2008-2023
  * InfiniteBlueGX May-December 2022
- * NiuuS 2017-2023
+ * NiuuS 2016-2023
  *
  * preferences.cpp
  *
@@ -178,8 +178,8 @@ preparePrefsData ()
 	createXMLSetting("WiimoteOrientation", "Wiimote Orientation", toStr(GCSettings.WiimoteOrientation));
 #endif
 	createXMLSetting("ExitAction", "Exit Action", toStr(GCSettings.ExitAction));
-	createXMLSetting("MusicVolume", "Music Volume", toStr(GCSettings.MusicVolume));
-	createXMLSetting("SFXVolume", "Sound Effects Volume", toStr(GCSettings.SFXVolume));
+	createXMLSetting("MusicVolume", "Menu Music Volume", toStr(GCSettings.MusicVolume));
+	createXMLSetting("SFXVolume", "Menu Effects Volume", toStr(GCSettings.SFXVolume));
 	createXMLSetting("language", "Language", toStr(GCSettings.language));
 	createXMLSetting("PreviewImage", "Preview Image", toStr(GCSettings.PreviewImage));
 	createXMLSetting("HideSRAMSaving", "Hide New SRAM button", toStr(GCSettings.HideSRAMSaving));
@@ -422,9 +422,9 @@ decodePrefsData ()
  ***************************************************************************/
 void FixInvalidSettings()
 {
-	if(GCSettings.LoadMethod > 6)
+	if(GCSettings.LoadMethod > 7)
 		GCSettings.LoadMethod = DEVICE_AUTO;
-	if(GCSettings.SaveMethod > 6)
+	if(GCSettings.SaveMethod > 7)
 		GCSettings.SaveMethod = DEVICE_AUTO;	
 	if(!(GCSettings.zoomHor > 0.5 && GCSettings.zoomHor < 1.5))
 		GCSettings.zoomHor = 1.0;
@@ -549,6 +549,7 @@ DefaultSettings ()
 
 	// Graphics
 	Settings.Transparency = true;
+	Settings.SupportHiRes = true;
 	Settings.SkipFrames = AUTO_FRAMERATE;
 	Settings.TurboSkipFrames = 19;
 	Settings.AutoDisplayMessages = false;
@@ -711,19 +712,28 @@ bool LoadPrefs()
 	sprintf(filepath[2], "usb:/apps/%s", APPFOLDER);
 	sprintf(filepath[3], "sd:/%s", APPFOLDER);
 	sprintf(filepath[4], "usb:/%s", APPFOLDER);
-#else
-	numDevices = 2;
-	sprintf(filepath[0], "carda:/%s", APPFOLDER);
-	sprintf(filepath[1], "cardb:/%s", APPFOLDER);
-#endif
 
 	for(int i=0; i<numDevices; i++)
 	{
 		prefFound = LoadPrefsFromMethod(filepath[i]);
-		
+
 		if(prefFound)
 			break;
 	}
+#else
+	if(ChangeInterface(DEVICE_SD_SLOTA, SILENT)) {
+		sprintf(filepath[0], "carda:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+	else if(ChangeInterface(DEVICE_SD_SLOTB, SILENT)) {
+		sprintf(filepath[0], "cardb:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+	else if(ChangeInterface(DEVICE_SD_PORT2, SILENT)) {
+		sprintf(filepath[0], "port2:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+#endif
 
 	prefLoaded = true; // attempted to load preferences
 
@@ -793,6 +803,5 @@ bool LoadPrefs()
 	bg_music_size = bg_music_ogg_size;
 	LoadBgMusic();
 #endif
-
 	return prefFound;
 }
