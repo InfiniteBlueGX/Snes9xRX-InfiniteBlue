@@ -1,5 +1,5 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
  * crunchy2 May 2007
@@ -16,7 +16,7 @@
 
 #include <unistd.h>
 #include <gccore.h>
-#include <snes9xrx.h>
+#include "snes9xrx.h"
 
 #define MAXJOLIET 255
 #ifdef HW_DOL

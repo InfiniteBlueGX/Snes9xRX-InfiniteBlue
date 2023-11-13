@@ -1,8 +1,8 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
- * Tantric 2008-2019
+ * Tantric 2008-2023
  *
  * audio.cpp
  *
@@ -83,7 +83,7 @@ static void S9xAudioCallback (void *data) {
 		nextab = (nextab + 1) % BUFFERCOUNT;
 
 		if(!Settings.TurboMode && ((nextab + 1) % BUFFERCOUNT) == playab) {
-		 	// quick and dirty attempt to prevent reading and writing from/to the same buffer
+		 	// Quick and dirty attempt to prevent reading and writing from/to the same buffer
 			nextab = (nextab + BUFFERCOUNT/2) % BUFFERCOUNT;
 		}
 

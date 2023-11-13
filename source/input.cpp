@@ -1,14 +1,16 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
  * crunchy2 May-June 2007
  * Michniewski 2008
- * Tantric 2008-2019
+ * Tantric 2008-2023
+ * InfiniteBlueGX May-December 2022
+ * NiuuS 2016-2023
  *
  * input.cpp
  *
- * Wii/Gamecube controller management
+ * Wii/GameCube controller management
  ***************************************************************************/
 
 #include <gccore.h>
@@ -45,6 +47,7 @@ extern "C"{
 }
 /* sicksaxis lib (by xerpi) */
 	static ss_instance_t sicksaxis;
+	int ds3chan = 0;
 #define SICKSAXIS_DEADZONE 115
 #endif
 
@@ -53,7 +56,7 @@ extern "C"{
 int playerMapping[4] = {0,1,2,3};
 GuiTrigger userInput[4];
 
-// hold superscope/mouse/justifier cursor positions
+// Hold Super Scope/Mouse/Justifier cursor positions
 static int cursor_x[5] = {0,0,0,0,0};
 static int cursor_y[5] = {0,0,0,0,0};
 
@@ -68,13 +71,13 @@ static int cursor_y[5] = {0,0,0,0,0};
 #define ASSIGN_BUTTON_FALSE( keycode, snescmd ) \
 	  S9xMapButton( keycode, cmd = S9xGetCommandT(snescmd), false)
 
-static int scopeTurbo = 0; // tracks whether superscope turbo is on or off
+static int scopeTurbo = 0; // Tracks whether the Turbo button on the Super Scope is ON or OFF
 u32 btnmap[4][6][12]; // button mapping
 
 void ResetControls(int consoleCtrl, int wiiCtrl)
 {
 	int i;
-	/*** Gamecube controller Padmap ***/
+	/*** GameCube controller Padmap ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_PAD && wiiCtrl == CTRLR_GCPAD))
 	{
 		i=0;
@@ -182,7 +185,7 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
 		btnmap[CTRL_PAD][CTRLR_NUNCHUK][i++] = WPAD_BUTTON_RIGHT;
 	}
 
-	/*** Superscope : GC controller button mapping ***/
+	/*** Super Scope : GC controller button mapping ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_SCOPE && wiiCtrl == CTRLR_GCPAD))
 	{
 		i=0;
@@ -194,7 +197,7 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
 		btnmap[CTRL_SCOPE][CTRLR_GCPAD][i++] = PAD_BUTTON_START;
 	}
 
-	/*** Superscope : Wiimote button mapping ***/
+	/*** Super Scope : Wiimote button mapping ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_SCOPE && wiiCtrl == CTRLR_WIIMOTE))
 	{
 		i=0;
@@ -206,7 +209,7 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
 		btnmap[CTRL_SCOPE][CTRLR_WIIMOTE][i++] = WPAD_BUTTON_PLUS;
 	}
 
-	/*** Superscope : Wii Classic Controller button mapping ***/
+	/*** Super Scope : Wii Classic Controller button mapping ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_SCOPE && wiiCtrl == CTRLR_CLASSIC))
 	{
 		i=0;
@@ -218,7 +221,7 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
 		btnmap[CTRL_SCOPE][CTRLR_CLASSIC][i++] = WPAD_CLASSIC_BUTTON_PLUS;
 	}
 
-	/*** Superscope : Wii U Pro Controller button mapping ***/
+	/*** Super Scope : Wii U Pro Controller button mapping ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_SCOPE && wiiCtrl == CTRLR_WUPC))
 	{
 		i=0;
@@ -230,7 +233,7 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
 		btnmap[CTRL_SCOPE][CTRLR_WUPC][i++] = WPAD_CLASSIC_BUTTON_PLUS;
 	}
 
-	/*** Superscope : Wii U Gamepad button mapping ***/
+	/*** Super Scope : Wii U Gamepad button mapping ***/
 	if(consoleCtrl == -1 || (consoleCtrl == CTRL_SCOPE && wiiCtrl == CTRLR_WIIDRC))
 	{
 		i=0;
@@ -333,7 +336,6 @@ void ResetControls(int consoleCtrl, int wiiCtrl)
  *
  * Scans pad and wpad
  ***************************************************************************/
-
 void
 UpdatePads()
 {
@@ -445,7 +447,7 @@ SetupPads()
 /****************************************************************************
  * UpdateCursorPosition
  *
- * Updates X/Y coordinates for Superscope/mouse/justifier position
+ * Updates X/Y coordinates for Super Scope/Mouse/Justifier position
  ***************************************************************************/
 static void UpdateCursorPosition (int chan, int &pos_x, int &pos_y)
 {
@@ -687,7 +689,7 @@ static void decodepad (int chan, int emuChan)
 			S9xReportButton (offset + i, false);
     }
 
-	/*** Superscope ***/
+	/*** Super Scope ***/
 	if (Settings.SuperScopeMaster && emuChan == 0) // report only once
 	{
 		// buttons
@@ -962,8 +964,8 @@ void ReportButtons ()
 	// }
 
 	/* Check for menu:
-	 * Gamecube c-stick left
-	 * OR "A+B+Start+Z" on the Gamecube controller ports (eg. Homebrew/Adapted NES-SNES controllers)
+	 * GameCube C-Stick Left
+	 * OR "A+B+Start+Z" on the GameCube controller ports (eg. Homebrew/Adapted NES-SNES controllers)
 	 * OR "Home" on the Wiimote or Wii Classic Controller
 	 * OR "Select+Start+A+B" on Wiimote controller extensions (eg. NES/SNES/3rd party controllers)
 	 */
@@ -1009,7 +1011,7 @@ void SetControllers()
 		{
 			S9xSetController (0, CTL_MOUSE, 0, 0, 0, 0);
 			S9xSetController (1, CTL_MOUSE, 1, 0, 0, 0);
-		}	
+		}
 	}
 	else if (Settings.JustifierMaster == true)
 	{
@@ -1092,7 +1094,7 @@ void SetDefaultButtonMap ()
 	ASSIGN_BUTTON_FALSE (maxcode++, "Joypad4 Right");
 
 	maxcode = 0x50;
-	/*** Superscope ***/
+	/*** Super Scope ***/
 	ASSIGN_BUTTON_FALSE (maxcode++, "Superscope Fire");
 	ASSIGN_BUTTON_FALSE (maxcode++, "Superscope AimOffscreen");
 	ASSIGN_BUTTON_FALSE (maxcode++, "Superscope Cursor");
@@ -1132,8 +1134,8 @@ void SetDefaultButtonMap ()
 #ifdef HW_RVL
 char* GetUSBControllerInfo()
 {
-    static char info[100];
-    snprintf(info, 100, "Retrode: %s, XBOX360: %s, Hornet: %s, Mayflash: %s", Retrode_Status(), XBOX360_Status(), Hornet_Status(), Mayflash_Status());
-    return info;
+	static char info[100];
+	snprintf(info, 100, "Retrode: %s, XBOX360: %s, Hornet: %s, Mayflash: %s", Retrode_Status(), XBOX360_Status(), Hornet_Status(), Mayflash_Status());
+	return info;
 }
 #endif

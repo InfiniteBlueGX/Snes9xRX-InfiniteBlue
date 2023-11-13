@@ -1,7 +1,9 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
- * Tantric 2008-2019
+ * Tantric 2008-2023
+ * InfiniteBlueGX May-December 2022
+ * NiuuS 2016-2023
  *
  * preferences.cpp
  *
@@ -152,6 +154,7 @@ preparePrefsData ()
 	createXMLSetting("crosshair", "Crosshair", toStr(GCSettings.crosshair));
 	createXMLSetting("FilterMethod", "Filter Method", toStr(GCSettings.FilterMethod));
 	createXMLSetting("HiResolution", "SNES Hi-Res Mode", toStr(GCSettings.HiResolution));
+	createXMLSetting("FrameSkip", "Frame Skipping", toStr(GCSettings.FrameSkip));
 	createXMLSetting("ShowFrameRate", "Show Framerate", toStr(GCSettings.ShowFrameRate));
 	createXMLSetting("ShowLocalTime", "Show Local Time", toStr(GCSettings.ShowLocalTime));
 	createXMLSetting("xshift", "Horizontal Video Shift", toStr(GCSettings.xshift));
@@ -175,8 +178,8 @@ preparePrefsData ()
 	createXMLSetting("WiimoteOrientation", "Wiimote Orientation", toStr(GCSettings.WiimoteOrientation));
 #endif
 	createXMLSetting("ExitAction", "Exit Action", toStr(GCSettings.ExitAction));
-	createXMLSetting("MusicVolume", "Music Volume", toStr(GCSettings.MusicVolume));
-	createXMLSetting("SFXVolume", "Sound Effects Volume", toStr(GCSettings.SFXVolume));
+	createXMLSetting("MusicVolume", "Menu Music Volume", toStr(GCSettings.MusicVolume));
+	createXMLSetting("SFXVolume", "Menu Effects Volume", toStr(GCSettings.SFXVolume));
 	createXMLSetting("language", "Language", toStr(GCSettings.language));
 	createXMLSetting("PreviewImage", "Preview Image", toStr(GCSettings.PreviewImage));
 	createXMLSetting("HideSRAMSaving", "Hide New SRAM button", toStr(GCSettings.HideSRAMSaving));
@@ -337,7 +340,7 @@ decodePrefsData ()
 			loadXMLSetting(GCSettings.ScreenshotsFolder, "ScreenshotsFolder", sizeof(GCSettings.ScreenshotsFolder));
 			loadXMLSetting(GCSettings.CoverFolder, "CoverFolder", sizeof(GCSettings.CoverFolder));
 			loadXMLSetting(GCSettings.ArtworkFolder, "ArtworkFolder", sizeof(GCSettings.ArtworkFolder));
-			
+
 			// Network Settings
 
 			loadXMLSetting(GCSettings.smbip, "smbip", sizeof(GCSettings.smbip));
@@ -355,6 +358,7 @@ decodePrefsData ()
 			loadXMLSetting(&GCSettings.crosshair, "crosshair");
 			loadXMLSetting(&GCSettings.FilterMethod, "FilterMethod");
 			loadXMLSetting(&GCSettings.HiResolution, "HiResolution");
+			loadXMLSetting(&GCSettings.FrameSkip, "FrameSkip");
 			loadXMLSetting(&GCSettings.ShowFrameRate, "ShowFrameRate");
 			loadXMLSetting(&GCSettings.ShowLocalTime, "ShowLocalTime");
 			loadXMLSetting(&GCSettings.xshift, "xshift");
@@ -418,9 +422,9 @@ decodePrefsData ()
  ***************************************************************************/
 void FixInvalidSettings()
 {
-	if(GCSettings.LoadMethod > 6)
+	if(GCSettings.LoadMethod > 7)
 		GCSettings.LoadMethod = DEVICE_AUTO;
-	if(GCSettings.SaveMethod > 6)
+	if(GCSettings.SaveMethod > 7)
 		GCSettings.SaveMethod = DEVICE_AUTO;	
 	if(!(GCSettings.zoomHor > 0.5 && GCSettings.zoomHor < 1.5))
 		GCSettings.zoomHor = 1.0;
@@ -440,7 +444,7 @@ void FixInvalidSettings()
 		GCSettings.Controller = CTRL_PAD2;
 	if(!(GCSettings.render >= 0 && GCSettings.render < 5))
 		GCSettings.render = 4;
-	if(!(GCSettings.videomode >= 0 && GCSettings.videomode < 5))
+	if(!(GCSettings.videomode >= 0 && GCSettings.videomode < 6))
 		GCSettings.videomode = 0;
 }
 
@@ -545,11 +549,13 @@ DefaultSettings ()
 
 	// Graphics
 	Settings.Transparency = true;
+	Settings.SupportHiRes = true;
 	Settings.SkipFrames = AUTO_FRAMERATE;
 	Settings.TurboSkipFrames = 19;
 	Settings.AutoDisplayMessages = false;
 	Settings.InitialInfoStringTimeout = 200; // # of frames to display messages for
 	GCSettings.HiResolution = 1; // Enabled by default
+	GCSettings.FrameSkip = 1; // Enabled by default
 	GCSettings.ShowFrameRate = 0; // Disabled by default
 	GCSettings.ShowLocalTime = 0; // Disabled by default
 
@@ -561,7 +567,7 @@ DefaultSettings ()
 	Settings.BlockInvalidVRAMAccessMaster = true;
 
 	GCSettings.sfxOverclock = 0;
-	/* Initialize SuperFX chip to normal speed by default */
+	/* Initialize Super FX chip to normal speed by default */
 	Settings.SuperFXSpeedPerLine = 0.417 * 10.5e6;
 
 	GCSettings.cpuOverclock = 0;
@@ -706,19 +712,28 @@ bool LoadPrefs()
 	sprintf(filepath[2], "usb:/apps/%s", APPFOLDER);
 	sprintf(filepath[3], "sd:/%s", APPFOLDER);
 	sprintf(filepath[4], "usb:/%s", APPFOLDER);
-#else
-	numDevices = 2;
-	sprintf(filepath[0], "carda:/%s", APPFOLDER);
-	sprintf(filepath[1], "cardb:/%s", APPFOLDER);
-#endif
 
 	for(int i=0; i<numDevices; i++)
 	{
 		prefFound = LoadPrefsFromMethod(filepath[i]);
-		
+
 		if(prefFound)
 			break;
 	}
+#else
+	if(ChangeInterface(DEVICE_SD_SLOTA, SILENT)) {
+		sprintf(filepath[0], "carda:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+	else if(ChangeInterface(DEVICE_SD_SLOTB, SILENT)) {
+		sprintf(filepath[0], "cardb:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+	else if(ChangeInterface(DEVICE_SD_PORT2, SILENT)) {
+		sprintf(filepath[0], "port2:/%s", APPFOLDER);
+		prefFound = LoadPrefsFromMethod(filepath[0]);
+	}
+#endif
 
 	prefLoaded = true; // attempted to load preferences
 
@@ -788,6 +803,5 @@ bool LoadPrefs()
 	bg_music_size = bg_music_ogg_size;
 	LoadBgMusic();
 #endif
-
 	return prefFound;
 }

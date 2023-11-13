@@ -1,11 +1,12 @@
 /****************************************************************************
- * Snes9x Nintendo Wii/Gamecube Port
+ * Snes9x Nintendo Wii/GameCube Port
  *
  * softdev July 2006
  * svpe June 2007
  * crunchy2 May-July 2007
  * Michniewski 2008
- * Tantric 2008-2010
+ * Tantric 2008-2023
+ * NiuuS 2016-2023
  *
  * filebrowser.cpp
  *
@@ -76,6 +77,8 @@ int autoLoadMethod()
 		device = DEVICE_SD_SLOTA;
 	else if(ChangeInterface(DEVICE_SD_SLOTB, SILENT))
 		device = DEVICE_SD_SLOTB;
+	else if(ChangeInterface(DEVICE_SD_PORT2, SILENT))
+		device = DEVICE_SD_PORT2;
 	else if(ChangeInterface(DEVICE_DVD, SILENT))
 		device = DEVICE_DVD;
 	else if(ChangeInterface(DEVICE_SMB, SILENT))
@@ -107,6 +110,8 @@ int autoSaveMethod(bool silent)
 		device = DEVICE_SD_SLOTA;
 	else if(ChangeInterface(DEVICE_SD_SLOTB, SILENT))
 		device = DEVICE_SD_SLOTB;
+	else if(ChangeInterface(DEVICE_SD_PORT2, SILENT))
+		device = DEVICE_SD_PORT2;
 	else if(ChangeInterface(DEVICE_SMB, SILENT))
 		device = DEVICE_SMB;
 	else if(!silent)
@@ -176,7 +181,8 @@ bool IsDeviceRoot(char * path)
 		strcmp(path, "dvd:/")   == 0 ||
 		strcmp(path, "smb:/")   == 0 ||
 		strcmp(path, "carda:/") == 0 ||
-		strcmp(path, "cardb:/") == 0)
+		strcmp(path, "cardb:/") == 0 ||
+		strcmp(path, "port2:/") == 0)
 	{
 		return true;
 	}
@@ -239,7 +245,7 @@ int UpdateDirName()
 		if ((strlen(browser.dir)+1+strlen(browserList[browser.selIndex].filename)) < MAXPATHLEN)
 		{
 			/* update current directory name */
-			sprintf(browser.dir, "%s%s/",browser.dir, browserList[browser.selIndex].filename);
+			sprintf(browser.dir+strlen(browser.dir), "%s/", browserList[browser.selIndex].filename);
 			return 1;
 		}
 		else
@@ -341,7 +347,7 @@ int FileSortCallback(const void *f1, const void *f2)
 	if(((BROWSERENTRY *)f1)->isdir && !(((BROWSERENTRY *)f2)->isdir)) return -1;
 	if(!(((BROWSERENTRY *)f1)->isdir) && ((BROWSERENTRY *)f2)->isdir) return 1;
 
-	return stricmp(((BROWSERENTRY *)f1)->filename, ((BROWSERENTRY *)f2)->filename);
+	return strcasecmp(((BROWSERENTRY *)f1)->filename, ((BROWSERENTRY *)f2)->filename);
 }
 
 /****************************************************************************
@@ -362,7 +368,7 @@ static bool IsValidROM()
 		{
 			char * zippedFilename = NULL;
 			
-			if(stricmp(p, ".zip") == 0 && !inSz)
+			if(strcasecmp(p, ".zip") == 0 && !inSz)
 			{
 				// we need to check the file extension of the first file in the archive
 				zippedFilename = GetFirstZipFilename ();
@@ -375,11 +381,11 @@ static bool IsValidROM()
 
 			if(p != NULL)
 			{
-				if (stricmp(p, ".bs") == 0 ||
-					stricmp(p, ".fig") == 0 ||
-					stricmp(p, ".sfc") == 0 ||
-					stricmp(p, ".smc") == 0 ||
-					stricmp(p, ".swc") == 0)
+				if (strcasecmp(p, ".bs") == 0 ||
+					strcasecmp(p, ".fig") == 0 ||
+					strcasecmp(p, ".sfc") == 0 ||
+					strcasecmp(p, ".smc") == 0 ||
+					strcasecmp(p, ".swc") == 0)
 				{
 					if(zippedFilename) free(zippedFilename);
 					return true;
@@ -404,7 +410,7 @@ bool IsSz()
 		char * p = strrchr(browserList[browser.selIndex].filename, '.');
 
 		if (p != NULL)
-			if(stricmp(p, ".7z") == 0)
+			if(strcasecmp(p, ".7z") == 0)
 				return true;
 	}
 	return false;
@@ -495,7 +501,8 @@ int WiiFileLoader()
 		else
 			sprintf (filepath, "%s%s/", pathPrefix[GCSettings.LoadMethod], APPFOLDER);
 
-		if(LoadFile ((char *)Memory.BIOSROM, filepath, 0, 0x100000, SILENT) == 0) {
+		if(LoadFile ((char *)Memory.BIOSROM, filepath, 0, 0x100000, SILENT) == 0)
+		{
 			bsxBiosLoadFailed = true;
 		}
 	}
@@ -613,10 +620,18 @@ int BrowserChangeFolder()
 		browserList[i].isdir = 1;
 		browserList[i].icon = ICON_SD;
 		i++;
-		
+
 		AddBrowserEntry();
 		sprintf(browserList[i].filename, "cardb:/");
 		sprintf(browserList[i].displayname, "SD Gecko Slot B");
+		browserList[i].length = 0;
+		browserList[i].isdir = 1;
+		browserList[i].icon = ICON_SD;
+		i++;
+
+		AddBrowserEntry();
+		sprintf(browserList[i].filename, "port2:/");
+		sprintf(browserList[i].displayname, "SD in SP2");
 		browserList[i].length = 0;
 		browserList[i].isdir = 1;
 		browserList[i].icon = ICON_SD;
@@ -629,7 +644,7 @@ int BrowserChangeFolder()
 		browserList[i].isdir = 1;
 		browserList[i].icon = ICON_SMB;
 		i++;
-		
+
 		AddBrowserEntry();
 		sprintf(browserList[i].filename, "dvd:/");
 		sprintf(browserList[i].displayname, "Data DVD");
@@ -637,10 +652,10 @@ int BrowserChangeFolder()
 		browserList[i].isdir = 1;
 		browserList[i].icon = ICON_DVD;
 		i++;
-		
+
 		browser.numEntries += i;
 	}
-	
+
 	if(browser.dir[0] == 0)
 	{
 		GCSettings.LoadFolder[0] = 0;
